@@ -41,7 +41,12 @@ class MovementAction(Action):
         check_tile = engine.game_map.tiles[dest_x, dest_y]
         if not check_tile.walkable:
             return
-
+        
+        try:
+            engine.game_map.tiles[entity.x, entity.y].contains.remove(entity)
+        except:
+            pass
         entity.move(self.dx, self.dy)
+        engine.game_map.tiles[entity.x, entity.y].contains.append(entity)
 
         

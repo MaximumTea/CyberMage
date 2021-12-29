@@ -1,30 +1,32 @@
-##CyberMage project 0.00.10 preAlpha
+##CyberMage project 0.00.11 preAlpha
 
+## image.set_alpha(0-255) makes partially transparent
 
 ##TODO:
-## SPLITTING MODULES: DONE
-    ##BULK CLASS TRANSFER: DONE
-    ##DEPENDENCY UPDATES: DONE
-    ##CLASS LOGIC UPDATES: DONE
-## CODE CLEANUP:
-    ##COMBINE GENERIC X,Y ARGUMENTS AS TUPLE ARGUMENTS - DEFER
-    ##ADD ANNOTATIONS TO CLASSES AND FUNCTIONS: CONTINUOUS PROGRESS
-    ##ADD VERSION NUMBER TO MAIN: DONE
-    ##Simplify: tile width & tile height to one variable: square tiles: DONE
-## UPLOAD TO GITHUB: CONTINUOUS PROGRESS
-## RENAME ACTOR TO ENTITY: DONE
-## EVALUATE CIRCULAR IMPORTS: DONE [but I don't understand how it works]
-##      -REMOVE ENGINE IMPORT FROM ACTIONS? NO, ADDED TYPECHECKING ARGS
-##      -BIG JUJU DONE
-## MOVE PYGAME FLIP TO ENGINE RENDERING FUNCTION: DONE
-## IN ENGINE RENDER FUNCTIONS, CREATE A FUNCTION TO SIMPLIFY VISUAL BOUNDARY CHECKS: DONE
+
+##PRIMARY GOALS:
+##CREATE A PROCEDURAL DUNGEON GENERATOR: DONE
+
+##SECONDARY GOALS:
+##ADJUST MAP GENERATION ALGORITHM SO THAT PLAYER ALWAYS RENDERS
+##IN THE CENTER. DONE!
+##START PLAYER IN CENTER OF FIRST ROOM   DONE!
+##TILES IMMEDIATELY SURROUNDING PLAYER TO HAVE TRANSPARENCY SO THAT PLAYER
+##CAN BE SEEN WHILE BEHIND TALL TILES. DEFER
+##
+##REMOVE PYGAME.LOAD.IMAGE FUNCTIONS FROM TILE TYPES AND ENTITY
+##      SUPPORT DEEPCOPY OPERATIONS IN THE FUTURE #DONE
+##DEEPCOPY TILE ARRAY SO PLAYER SHOWS UP WITHOUT HAVING TO MOVE FIRST
+##  NEED TO REMOVE SCREEN ATTRIBUTES TO DEEPCOPY
+##  SCREEN ATTRIBUTES REMOVES; DEEPCOPY DOES NOT WORK TO START SHOW
+##  PLAYER LOCATION
 
 import color
 import dummy
 from engine import Engine
 from entity import Entity
 from input_handlers import EventHandler
-from gamemap import Game_Map
+from procgen import generate_dungeon
 import pygame
 import sys
 
@@ -33,23 +35,28 @@ pygame.init()
 
 def main():
     running = True
-    screen = pygame.display.set_mode((900,600))
+    screen = pygame.display.set_mode((1024,720))
     
     width, height = 80, 50 #map width and height in tiles
-    view_radius = 7
+    view_radius = 8
     tilewidth = 10 #pixel size for two dimensional minimap tiles
 
-    player_start = (10,10) #player start location in x, y tiles
-    game_map = Game_Map(
+    room_max_size = 10
+    room_min_size = 6
+    max_rooms = 30
+
+    player = Entity((color.yellow), "stickman.png", 32)
+
+    game_map = generate_dungeon(
+        max_rooms = max_rooms,
+        room_min_size = room_min_size,
+        room_max_size = room_max_size,
         tilewidth = tilewidth,
-        width = width,
-        height = height,
-        view_x = view_radius,
-        view_y = view_radius,
-        screen = screen,
-        player_start = player_start
+        map_width = width,
+        map_height = height,
+        viewradius = view_radius,
+        player = player
         )
-    player = Entity((color.red), player_start, game_map, "stickman.png", 32)
 
     entities = [player]
     event_handler = EventHandler()
@@ -59,6 +66,7 @@ def main():
         player = player,
         game_map = game_map
         )
+    engine.game_map.tiles[player.x, player.y].contains.append(player) #this line starts display of player
 
     while running:
         events = pygame.event.get()

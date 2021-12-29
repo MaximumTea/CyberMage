@@ -13,7 +13,8 @@ class Tile:
         color_fade: (int,int,int),
         contains: [],
         iso_image: str,
-        iso_offset: int
+        iso_offset: int,
+        name: str
         ):
 
         self.walkable = walkable
@@ -22,9 +23,9 @@ class Tile:
         self.color_seen = color_seen
         self.color_fade = color_fade
         self.contains = []
-        self.iso_image = pygame.image.load(iso_image)
-        self.iso_image.set_colorkey(color.white)
+        self.iso_image = iso_image
         self.iso_offset = iso_offset
+        self.name = name
 
 #Create a basic floor and wall tile type
 
@@ -38,7 +39,8 @@ def new_tile(tile_type):
             color_fade = (128,128,200),
             contains = [],
             iso_image = "iso64x32base4_grass.png",
-            iso_offset = 0
+            iso_offset = 0,
+            name = "floor"
             )
         return tile
     elif tile_type == "wall":
@@ -50,6 +52,20 @@ def new_tile(tile_type):
             color_fade = (200,200,255),
             contains = [],
             iso_image = "iso64x32base4depth3.png",
-            iso_offset = -96
+            iso_offset = -96,
+            name = "wall"
+            )
+        return tile
+    elif tile_type == "void":
+        tile = Tile(
+            walkable = False,
+            transparent = False,
+            color_notseen = color.black,
+            color_seen = color.black,
+            color_fade = color.black,
+            contains = [],
+            iso_image = "empty.png",
+            iso_offset = 0,
+            name = "void"
             )
         return tile

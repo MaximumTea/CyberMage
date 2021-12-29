@@ -3,32 +3,23 @@ from dummy import dummy, DummyObject
 import numpy as np
 from tile_types import *
 
+
 class Game_Map:
-    def __init__(self, tilewidth: int, width: int, height: int, view_x: int, view_y: int, screen, player_start):
+    def __init__(self, tilewidth: int, width: int, height: int, viewradius: int):
         self.tilewidth = tilewidth
         self.mapwidth = width
         self.mapheight = height
-        self.view_x = view_x
-        self.view_y = view_y
-        self.tiles = np.full((width,height), dummy, order = "F")
+        self.viewradius = viewradius
+        self.fullwidth = width + viewradius
+        self.fullheight = height + viewradius
+        self.full_tiles = np.full((width + viewradius,height + viewradius), dummy, order = "F") #fill map with void tiles
+        self.tiles = self.full_tiles[viewradius : viewradius + width, viewradius : viewradius + height] #define play map cutout of full map
         self.gen_map_array()
-
         
-        self.tiles[0:5, 1] = new_tile("wall")  #change some tiles to a dummy wall to test the new player centric map function
-        
-        self.screen = screen
-        self.gridsurface = pygame.Surface((300,300))
-        self.gridsurface.fill(color.white)
-        self.player_location = player_start
-
-        self.change_tiles(20, 30, 10, 10, "wall")
 
 
-    def change_tiles(self, x_start, y_start, x_change: int, y_change: int, tile_type: str):
-        xrange = x_start + x_change
-        yrange = y_start + y_change
-        tilechunk = self.tiles[x_start:xrange , y_start:yrange]
-        tilescopy = np.copy(tilechunk) #make copy of original tileset to ensure that the original is preserved
+    def change_tiles(self, area, tile_type:str):
+        tilechunk = self.tiles[area]
         xincr = -1
         for x in tilechunk:
             xincr += 1
@@ -38,24 +29,36 @@ class Game_Map:
                 yincr += 1
                 tilechunk[xincr, yincr] = new_tile(tile_type)
 
-        self.tiles[x_start:xrange, y_start:yrange] = tilechunk
-            
+    def change_single_tile(self, tile: (int, int), tile_type:str):
+        self.tiles[tile] = new_tile(tile_type)
         
         
 ####new function to generate an array of individual tiles of the new type.
     def gen_map_array(self):
-        """Fill the map array with tiles"""
+        """Fill the map array with void tiles and then
+        wall fill on top of the playable area of the map."""
         xincr = -1
-        yincr = -1
-        for x in (self.tiles):
+        for x in (self.full_tiles):
             xincr += 1
             yincr = -1
             
             for y in x:
 
                 yincr += 1
-                change_tile = new_tile("floor")
-                self.tiles[xincr,yincr] = change_tile
+                tile_fill = new_tile("void")
+                self.full_tiles[xincr,yincr] = tile_fill
+
+        tilechunk = self.tiles
+        xincr = -1
+        for x in tilechunk:
+            xincr += 1
+            yincr = -1
+            for y in x:
+                yincr += 1
+                tile_fill = new_tile("wall")
+                self.tiles[xincr,yincr] = tile_fill
+
+        
         
 
     def in_bounds(self, x:int, y:int) -> bool:
